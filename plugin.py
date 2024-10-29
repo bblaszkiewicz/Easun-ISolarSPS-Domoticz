@@ -35,6 +35,7 @@
     <device id="4" name="Battery Voltage" type="243" subtype="8" description="Napięcie baterii"/>
     <device id="5" name="PV Input Current" type="243" subtype="23" description="Prąd PV"/>
     <device id="6" name="Battery Discharge Current  Current" type="243" subtype="23" description="Prąd baterii"/>
+    <device id="7" name="PV Voltage" type="243" subtype="8" description="Napięcie PV"/>
   </devices>
 </plugin>
 """
@@ -52,6 +53,7 @@ class BasePlugin:
         self.debug = False
         self.pollinterval = 60
         self.nextpoll = datetime.datetime.now()
+        self.qpigs_command = b'\x51\x50\x49\x47\x53\xB7\xA9\x0D'
 
     def onStart(self):
         # Odczytujemy ustawienia portu szeregowego i baudrate z konfiguracji
@@ -82,6 +84,7 @@ class BasePlugin:
         try:
             # Przykładowe odczytanie danych z portu szeregowego
             readData = self.serial_port.readline()
+            Domoticz.Log(readData)
             data = readData.decode('utf-8', 'ignore').strip()
             
             match = re.findall(r'\((\d+\.\d+ \d+\.\d+ \d+\.\d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+\.\d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+)', data)
@@ -106,6 +109,7 @@ class BasePlugin:
             battery_voltage = float(values[8])
             pv_charging_power = float(values[12])
             bat_current = float(values[15])
+            pv_voltage = float(values[13])
                 
             # Aktualizacja wartości urządzeń wirtualnych w Domoticz
             if 1 in Devices:
@@ -120,6 +124,8 @@ class BasePlugin:
                 Devices[5].Update(0, str(pv_charging_power))
             if 6 in Devices:
                 Devices[6].Update(0, str(bat_current))
+            if 7 in Devices:
+                Devices[7].Update(0, str(pv_voltage))
 
         except Exception as e:
             Domoticz.Error(f"Błąd podczas parsowania danych: {str(e)}")
@@ -135,7 +141,10 @@ class BasePlugin:
         if now < self.nextpoll:
             Domoticz.Debug(f"Awaiting next poll: {self.nextpoll}")
             return
-        
+        # Wysłanie komendy QPIGS
+        self.serial_port.write(self.qpigs_command)
+        Domoticz.Log("Sent QPIGS command to inverter")
+        time.sleep(2)
         self.readData()
         self.postponeNextPool(self.pollinterval)
         
@@ -157,6 +166,8 @@ def registerDevices():
         Domoticz.Device(Name="PV Current", Unit=5, Type=243, Subtype=23).Create()
     if 6 not in Devices:
         Domoticz.Device(Name="Battery discharge current", Unit=6, Type=243, Subtype=23).Create()
+    if 7 not in Devices:
+        Domoticz.Device(Name="PV Voltage", Unit=7, Type=243, Subtype=8).Create()
 
 # Wywoływana na starcie
 def onStart():
