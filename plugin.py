@@ -84,7 +84,7 @@ class BasePlugin:
         try:
             # Przykładowe odczytanie danych z portu szeregowego
             readData = self.serial_port.readline()
-            Domoticz.Log(readData)
+            #Domoticz.Log(readData)
             data = readData.decode('utf-8', 'ignore').strip()
             
             match = re.findall(r'\((\d+\.\d+ \d+\.\d+ \d+\.\d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+\.\d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+)', data)
@@ -143,7 +143,7 @@ class BasePlugin:
             return
         # Wysłanie komendy QPIGS
         self.serial_port.write(self.qpigs_command)
-        Domoticz.Log("Sent QPIGS command to inverter")
+        #Domoticz.Log("Sent QPIGS command to inverter")
         time.sleep(2)
         self.readData()
         self.postponeNextPool(self.pollinterval)
