@@ -31,7 +31,7 @@
   <devices>
     <device id="1" name="Grid Voltage" type="243" subtype="8" description="Napięcie sieci"/>
     <device id="2" name="AC Output Voltage" type="243" subtype="8" description="Napięcie wyjściowe AC"/>
-    <device id="3" name="AC Output Power" type="248" subtype="1" description="Moc wyjściowa AC"/>
+    <device id="3" name="AC Output Power" type="243" subtype="29" description="Moc wyjściowa AC"/>
     <device id="4" name="Battery Voltage" type="243" subtype="8" description="Napięcie baterii"/>
     <device id="5" name="PV Input Current" type="243" subtype="23" description="Prąd PV"/>
     <device id="6" name="Battery Discharge Current  Current" type="243" subtype="23" description="Prąd baterii"/>
@@ -117,7 +117,8 @@ class BasePlugin:
             if 2 in Devices:
                 Devices[2].Update(0, str(ac_output_voltage))
             if 3 in Devices:
-                Devices[3].Update(0, str(ac_output_power))
+                #Devices[3].Update(0, str(ac_output_power))
+                Devices[3].Update(0, f"{str(ac_output_power)};0")
             if 4 in Devices:
                 Devices[4].Update(0, str(battery_voltage))
             if 5 in Devices:
@@ -159,7 +160,7 @@ def registerDevices():
     if 2 not in Devices:
         Domoticz.Device(Name="AC Output Voltage", Unit=2, Type=243, Subtype=8).Create()
     if 3 not in Devices:
-        Domoticz.Device(Name="AC Output Power", Unit=3, Type=248, Subtype=1).Create()
+        Domoticz.Device(Name="AC Output Power", Unit=3, TypeName="kWh").Create()
     if 4 not in Devices:
         Domoticz.Device(Name="Battery Voltage", Unit=4, Type=243, Subtype=8).Create()
     if 5 not in Devices:
