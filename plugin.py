@@ -25,18 +25,6 @@
      </options>
    </param>
 </params>
-
-  
-  <!-- Definicje urządzeń wirtualnych -->
-  <devices>
-    <device id="1" name="Grid Voltage" type="243" subtype="8" description="Napięcie sieci"/>
-    <device id="2" name="AC Output Voltage" type="243" subtype="8" description="Napięcie wyjściowe AC"/>
-    <device id="3" name="AC Output Power" type="243" subtype="29" description="Moc wyjściowa AC"/>
-    <device id="4" name="Battery Voltage" type="243" subtype="8" description="Napięcie baterii"/>
-    <device id="5" name="PV Input Current" type="243" subtype="23" description="Prąd PV"/>
-    <device id="6" name="Battery Discharge Current  Current" type="243" subtype="23" description="Prąd baterii"/>
-    <device id="7" name="PV Voltage" type="243" subtype="8" description="Napięcie PV"/>
-  </devices>
 </plugin>
 """
 
@@ -56,17 +44,15 @@ class BasePlugin:
         self.qpigs_command = b'\x51\x50\x49\x47\x53\xB7\xA9\x0D'
 
     def onStart(self):
-        # Odczytujemy ustawienia portu szeregowego i baudrate z konfiguracji
         serial_port = Parameters["Mode1"]
         self.baudrate = int(Parameters["Mode2"]) if "Mode2" in Parameters else 2400
         self.debug = Parameters["Mode3"] == "true"
 
         if self.debug:
-            Domoticz.Debug(f"Wybrany port szeregowy: {serial_port}")
-            Domoticz.Debug(f"Wybrany baudrate: {self.baudrate}")
+            Domoticz.Debug(f"Selected serial port: {serial_port}")
+            Domoticz.Debug(f"Selected baudrate: {self.baudrate}")
 
         try:
-            # Otwieramy port szeregowy
             self.serial_port = serial.Serial(serial_port, self.baudrate, timeout=1, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
             Domoticz.Log(f"Otworzono port {serial_port} z baudrate {self.baudrate}")
         except Exception as e:
@@ -78,11 +64,10 @@ class BasePlugin:
 
     def readData(self):
         if self.serial_port is None:
-            Domoticz.Error("Port szeregowy nie jest otwarty.")
+            Domoticz.Error("Serial port is not open")
             return
         
         try:
-            # Przykładowe odczytanie danych z portu szeregowego
             readData = self.serial_port.readline()
             #Domoticz.Log(readData)
             data = readData.decode('utf-8', 'ignore').strip()
@@ -94,7 +79,7 @@ class BasePlugin:
                 self.parseData(match[0])
 
         except Exception as e:
-            Domoticz.Error(f"Błąd podczas odczytu danych: {str(e)}")
+            Domoticz.Error(f"Data reading error: {str(e)}")
     
     def parseData(self, data):
         # Przyjmujemy, że dane są w formacie podobnym do: (224.0 50.0 228.0 ...)
@@ -102,22 +87,20 @@ class BasePlugin:
             values = data[0:-1].split()
             Domoticz.Log(f"splitted: {values}")
                 
-            # Przykładowe przypisanie wartości do urządzeń Domoticz
             grid_voltage = float(values[0])
             ac_output_voltage = float(values[2])
             ac_output_power = float(values[5])
             battery_voltage = float(values[8])
+            heatSinkTemp = float(values[11])*0.1
             pv_charging_power = float(values[12])
             bat_current = float(values[15])
             pv_voltage = float(values[13])
                 
-            # Aktualizacja wartości urządzeń wirtualnych w Domoticz
             if 1 in Devices:
                 Devices[1].Update(0, str(grid_voltage))
             if 2 in Devices:
                 Devices[2].Update(0, str(ac_output_voltage))
             if 3 in Devices:
-                #Devices[3].Update(0, str(ac_output_power))
                 Devices[3].Update(0, f"{str(ac_output_power)};0")
             if 4 in Devices:
                 Devices[4].Update(0, str(battery_voltage))
@@ -127,9 +110,11 @@ class BasePlugin:
                 Devices[6].Update(0, str(bat_current))
             if 7 in Devices:
                 Devices[7].Update(0, str(pv_voltage))
+            if 8 in Devices:
+                Devices[8].Update(0, str(heatSinkTemp))
 
         except Exception as e:
-            Domoticz.Error(f"Błąd podczas parsowania danych: {str(e)}")
+            Domoticz.Error(f"Data parsing error: {str(e)}")
 
     def onStop(self):
         if self.serial_port is not None:
@@ -137,14 +122,12 @@ class BasePlugin:
             Domoticz.Log("Port szeregowy został zamknięty.")
 
     def onHeartbeat(self):
-        # Odczyt danych na każdym heartbeat
         now = datetime.datetime.now()
         if now < self.nextpoll:
             Domoticz.Debug(f"Awaiting next poll: {self.nextpoll}")
             return
-        # Wysłanie komendy QPIGS
+        
         self.serial_port.write(self.qpigs_command)
-        #Domoticz.Log("Sent QPIGS command to inverter")
         time.sleep(2)
         self.readData()
         self.postponeNextPool(self.pollinterval)
@@ -169,6 +152,8 @@ def registerDevices():
         Domoticz.Device(Name="Battery discharge current", Unit=6, Type=243, Subtype=23).Create()
     if 7 not in Devices:
         Domoticz.Device(Name="PV Voltage", Unit=7, Type=243, Subtype=8).Create()
+    if 8 not in Devices:
+        Domoticz.Device(Name="Heat sink temp.", Unit=8, TypeName="Temperature").Create()
 
 # Wywoływana na starcie
 def onStart():
