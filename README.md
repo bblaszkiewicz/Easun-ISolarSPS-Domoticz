@@ -3,7 +3,7 @@
 ![domoticz_logotyp_mini-330x220](https://github.com/user-attachments/assets/6140e90a-1314-438c-84c9-5bc1fdcc595b)</br>
 <img src=https://github.com/user-attachments/assets/e15dbf2d-0e31-4608-95f3-75a2a1bdb771 width=200 />
 
-Plugin for reading data from the EAsun inverter. Currently, it allows reading grid voltage, output voltage, battery voltage, PV current, battery discharge current, output power and heat sink temperature
+Plugin for reading data from the EAsun inverter via RS232. Tested on Raspbery Pi 4B with [RS485 RS232 HAT extension](https://www.waveshare.com/wiki/RS485_RS232_HAT). Currently, it allows reading grid voltage, output voltage, battery voltage, PV current, battery discharge current, output power and heat sink temperature
 ## Installation
 Navigate to the plugin directory and install the plugin straight from github
 ```
