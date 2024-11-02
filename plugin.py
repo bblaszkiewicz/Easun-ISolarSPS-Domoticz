@@ -91,6 +91,7 @@ class BasePlugin:
             ac_output_voltage = float(values[2])
             ac_output_power = float(values[5])
             battery_voltage = float(values[8])
+            chargingCurrent = float(values[9])
             heatSinkTemp = float(values[11])*0.1
             pv_charging_power = float(values[12])
             bat_current = float(values[15])
@@ -112,6 +113,8 @@ class BasePlugin:
                 Devices[7].Update(0, str(pv_voltage))
             if 8 in Devices:
                 Devices[8].Update(0, str(heatSinkTemp))
+            if 9 in Devices:
+                Devices[9].Update(0, str(chargingCurrent))
 
         except Exception as e:
             Domoticz.Error(f"Data parsing error: {str(e)}")
@@ -154,6 +157,8 @@ def registerDevices():
         Domoticz.Device(Name="PV Voltage", Unit=7, Type=243, Subtype=8).Create()
     if 8 not in Devices:
         Domoticz.Device(Name="Heat sink temp.", Unit=8, TypeName="Temperature").Create()
+    if 9 not in Devices:
+        Domoticz.Device(Name="Battery charge current", Unit=9, Type=243, Subtype=23).Create()
 
 # Wywoływana na starcie
 def onStart():
