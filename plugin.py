@@ -92,7 +92,7 @@ class BasePlugin:
             ac_output_power = float(values[5])
             battery_voltage = float(values[8])
             chargingCurrent = float(values[9])
-            heatSinkTemp = float(values[11])*0.1
+            heatSinkTemp = (float(values[11]) * 0.1 - 32) * 5 / 9
             pv_charging_power = float(values[12])
             bat_current = float(values[15])
             pv_voltage = float(values[13])
