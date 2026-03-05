@@ -1,10 +1,10 @@
 """
 <plugin key="easun_inverter" name="Easun Inverter Plugin" version="0.1" author="BBlaszkiewicz">
   <description>
-    Plugin do odczytywania danych z inwertera Easun poprzez port RS232/RS485.
+    Plugin for reading data from the Easun inverter
   </description>
   
-  <!-- Parametry konfiguracyjne -->
+  <!-- Configuration parameters -->
   <params>
    <param field="Mode1" label="Serial Port" width="200px" required="true" default="/dev/ttySC1"/>
    <param field="Mode2" label="Baudrate" width="100px" required="true">
@@ -92,6 +92,7 @@ class BasePlugin:
             ac_output_power = float(values[5])
             battery_voltage = float(values[8])
             chargingCurrent = float(values[9])
+            battery_percentage = float(values[10])
             heatSinkTemp = float(values[11])*0.1
             pv_charging_power = float(values[12])
             bat_current = float(values[15])
@@ -115,6 +116,8 @@ class BasePlugin:
                 Devices[8].Update(0, str(heatSinkTemp))
             if 9 in Devices:
                 Devices[9].Update(0, str(chargingCurrent))
+            if 10 in Devices:
+                Devices[10].Update(0, str(battery_percentage))
 
         except Exception as e:
             Domoticz.Error(f"Data parsing error: {str(e)}")
@@ -159,6 +162,8 @@ def registerDevices():
         Domoticz.Device(Name="Heat sink temp.", Unit=8, TypeName="Temperature").Create()
     if 9 not in Devices:
         Domoticz.Device(Name="Battery charge current", Unit=9, Type=243, Subtype=23).Create()
+    if 10 not in Devices:
+        Domoticz.Device(Name="Battery Percentage", Unit=10, TypeName="Percentage").Create()
 
 # Wywoływana na starcie
 def onStart():
