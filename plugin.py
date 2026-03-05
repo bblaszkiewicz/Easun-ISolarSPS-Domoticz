@@ -37,7 +37,7 @@ import datetime
 class BasePlugin:
     def __init__(self):
         self.serial_port = None
-        self.baudrate = 2400  # Domyślny baudrate
+        self.baudrate = 2400  # Default baudrate
         self.debug = False
         self.pollinterval = 60
         self.nextpoll = datetime.datetime.now()
@@ -75,14 +75,14 @@ class BasePlugin:
             match = re.findall(r'\((\d+\.\d+ \d+\.\d+ \d+\.\d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+\.\d+ \d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+)', data)
             
             if len(match) > 0:
-                #Domoticz.Log(f"Otrzymane dane: {match[0]}")
+                #Domoticz.Log(f"Received data: {match[0]}")
                 self.parseData(match[0])
 
         except Exception as e:
             Domoticz.Error(f"Data reading error: {str(e)}")
     
     def parseData(self, data):
-        # Przyjmujemy, że dane są w formacie podobnym do: (224.0 50.0 228.0 ...)
+        # Data format: (224.0 50.0 228.0 ...)
         try:
             values = data[0:-1].split()
             Domoticz.Log(f"splitted: {values}")
@@ -93,7 +93,7 @@ class BasePlugin:
             battery_voltage = float(values[8])
             chargingCurrent = float(values[9])
             battery_percentage = float(values[10])
-            heatSinkTemp = float(values[11])*0.1
+            heatSinkTemp = (float(values[11]) * 0.1 - 32) * 5 / 9
             pv_charging_power = float(values[12])
             bat_current = float(values[15])
             pv_voltage = float(values[13])
@@ -125,7 +125,7 @@ class BasePlugin:
     def onStop(self):
         if self.serial_port is not None:
             self.serial_port.close()
-            Domoticz.Log("Port szeregowy został zamknięty.")
+            Domoticz.Log("Serial port closed")
 
     def onHeartbeat(self):
         now = datetime.datetime.now()
